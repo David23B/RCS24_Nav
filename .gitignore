@@ -10,18 +10,14 @@ devel
 
 .DS_Store
 
-src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/*
+src/autonomous_exploration_development_environment/src/vehicle_simulator/log
 
-!src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/matterport
+src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/campus
 
-src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/matterport/meshes/*
+src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/forest
 
-src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/matterport/segmentations/*
+src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/garage
 
-src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/matterport/preview/*
+src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/indoor
 
-src/autonomous_exploration_development_environment/src/vehicle_simulator/log/*
-
-!src/autonomous_exploration_development_environment/download_environments.sh
-
-!src/autonomous_exploration_development_environment/readme.txt
+src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/tunnel
