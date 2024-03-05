@@ -1,0 +1,9 @@
+<launch>
+    <node name="map_server" pkg="map_server" type="map_server" args="$(find global_planner)/map/map.yaml"/>
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find global_planner)/rviz/global_planner.rviz"/>
+    <node pkg="global_planner" type="global_planner" name="global_planner" output="screen"/>
+    <node pkg="global_planner" type="way_point" name="globalPathConverter" output="screen" required="true" />
+
+    <include file="$(find vehicle_simulator)/launch/system_indoor.launch" />
+
+</launch>
