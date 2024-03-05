@@ -42,3 +42,6 @@ roslaunch global_planner global_planner.launch
 - [ ] 封装
 - [ ] 考虑是否要在全局规划中更新地图
 - [ ] 较远的位置规划不出路径
+- [ ] 当前waypoint是根据时间间隔发送，修改成根据waypoint与vehicle的距离进行发送
+- [ ] 无法到达指定点，应该是少发了最后的点
+- [ ] 膨胀栅格地图可视化
