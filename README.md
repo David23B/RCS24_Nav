@@ -1,44 +1,44 @@
 # RCS24_Nav
 
-## 仿真测试
+## OVERVIEW
 
-仿真建立在CMU开源的导航系统上。在此基础上，我们引入上层全局规划器进行静态规划
+24赛季导航框架基于[CMU开源的导航系统](https://www.cmu-exploration.com/)，由以下三个主要模块组成：
 
-```bash
-git clone https://github.com/David23B/RCS24_Nav.git
-./src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/download_environments.sh
-```
+<img src="img/框架图.png" style="zoom:25%;" />
 
-```bash
-catkin_make
-source devel/setup.bash
-```
+### State Estimation
 
-### 建图
+状态估计模块使用[FAST_Lio2](https://github.com/hku-mars/FAST_LIO)获取机器人里程计信息。
 
-在仿真环境中自主探索并构建二维栅格地图
+### Local Planner
 
-```bash
-roslaunch vehicle_simulator build_map.launch
-```
+局部规划器使用CMU开源的[Autonomous Navigation Modules](https://github.com/HongbiaoZ/autonomous_exploration_development_environment)进行环境的避障、地形分析和路径选择。
 
-当图建的差不多了，使用以下命令保存地图，**注意，需要手动修改yaml文件中的origin**
+### Global Planner
 
-```bash
-rosrun map_server map_saver map:=/projected_map -f /home/jason/Project/github/RCS24_Nav/src/global_planner/map/map
-```
+全局规划器采用A*算法在建好的静态栅格地图中搜索路径，发布way_point序列，引导机器人到达指定地点。
 
-### 导航
+## DETAILS
 
-```
-roslaunch global_planner global_planner.launch
-```
+### Dependence
 
-### BUG
+- ubuntu 20.04
+- ros noetic
 
-- [x] 接受不到地图中选中的目标点
-- [x] 起始点设置为车的位置
-- [ ] 规划出的路径很扭曲
-- [ ] 封装
-- [ ] 考虑是否要在全局规划中更新地图
-- [ ] 较远的位置规划不出路径
+### Livox && FAST_LIO
+
+发布状态估计结果，以及注册的雷达点云数据
+
+### Serial 串口通信
+
+该节点为串口通信节点，订阅`/cmd_vel`话题，将规划出的x轴线速度和y轴线速度发送到下位机。使用ros提供的serial库
+
+### Local Planner
+
+### Global Planner
+
+## DEBUG
+
+- [ ] 添加重定位模块
+- [ ] TF_tree
+
