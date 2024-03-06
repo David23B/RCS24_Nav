@@ -45,6 +45,7 @@ roslaunch global_planner global_planner.launch
 - [x] 当前waypoint是根据时间间隔发送，修改成根据waypoint与vehicle的距离进行发送（3.6）
 - [ ] 无法到达指定点（应该是少发了最后的点）
 - [ ] 膨胀栅格可视化
+- [ ] https://github.com/ms-iot/ROSOnWindows/issues/279
 
 ## THINKING
 
