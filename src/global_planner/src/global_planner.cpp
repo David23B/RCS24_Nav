@@ -76,6 +76,7 @@ std::vector<Point*> getNeighbors(Point* p){
 }
 
 std::vector<Point*> getPath(Point* start, Point* end){
+    ros::Time start_time = ros::Time::now();
     // 初始化table，0-未访问，-1-已访问（在closelist中），>0-代价g
     std::vector<std::vector<int>> table(width, std::vector<int>(height));
     for(auto& row : table) {
@@ -96,7 +97,8 @@ std::vector<Point*> getPath(Point* start, Point* end){
 
         // 判断当前点是否目标点
         if(current->x == end->x && current->y == end->y){
-            // ROS_INFO("Path found!");
+            ros::Duration duration = ros::Time::now() - start_time;
+            ROS_INFO("Time taken by found path: %f", duration.toSec());
             // 回溯路径
             end->parent = current;
             std::vector<Point*> path;
@@ -164,7 +166,7 @@ void GoalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg){
     endPoint.y = msg->pose.position.x / resolution + origin_y;
     startPoint.h = abs(startPoint.x - endPoint.x) + abs(startPoint.y - endPoint.y);
     isEndPointUpdated = true;
-    ROS_INFO("Goal pose: x = %d, y = %d", endPoint.x, endPoint.y);
+    // ROS_INFO("Goal pose: x = %d, y = %d", endPoint.x, endPoint.y);
 }
 
 int main(int argc, char** argv){
@@ -174,7 +176,6 @@ int main(int argc, char** argv){
     ros::Subscriber map_sub = nh.subscribe("/map", 1, MapCallback);
     ros::Subscriber init_pose_sub = nh.subscribe("/state_estimation", 1, odometryCallback);
     ros::Subscriber goal_pose_sub = nh.subscribe("/move_base_simple/goal", 1, GoalPoseCallback);
-    ros::Publisher waypoint_pub = nh.advertise<geometry_msgs::PointStamped>("/way_point", 5);
     ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("/global_path", 5);
 
     ros::Rate loop_rate(10);
@@ -209,18 +210,6 @@ int main(int argc, char** argv){
                     path_msg.poses.push_back(pose);
                 }
                 path_pub.publish(path_msg);
-
-                // watpoint publisher
-                for(auto it = my_path.rbegin(); it != my_path.rend(); it++){
-                    geometry_msgs::PointStamped waypoint_msg;
-                    waypoint_msg.header.stamp = ros::Time::now();
-                    waypoint_msg.header.frame_id = "map";
-                    waypoint_msg.point.x = ((*it)->y - origin_y) * resolution;
-                    waypoint_msg.point.y = ((*it)->x - origin_x) * resolution;
-                    waypoint_msg.point.z = 0;
-                    waypoint_pub.publish(waypoint_msg);
-                    ros::Duration(0.5).sleep();
-                }
             }
             isEndPointUpdated = false;
         }

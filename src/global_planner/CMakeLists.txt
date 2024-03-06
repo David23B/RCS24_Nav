@@ -27,8 +27,12 @@ include_directories(
 )
 
 add_executable(${PROJECT_NAME} src/global_planner.cpp)
+add_executable(way_point src/way_point.cpp)
 
 target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(way_point
   ${catkin_LIBRARIES}
 )
 
@@ -36,7 +40,7 @@ target_link_libraries(${PROJECT_NAME}
 ## Install ##
 #############
 
-install(TARGETS ${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME} way_point
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
