@@ -1,4 +1,4 @@
-image: /home/jason/Project/github/RCS24_Nav/src/global_planner/map/map.pgm
+image: map.pgm
 resolution: 0.100000
 origin: [-1.900000, -12.700000, 0.0]
 negate: 0

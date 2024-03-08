@@ -34,6 +34,8 @@ void MapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg){
     resolution = msg->info.resolution;
     origin_x = -msg->info.origin.position.y / resolution;
     origin_y = -msg->info.origin.position.x / resolution;
+    // 清除map中的数据
+    map.clear();
     
     // lzt:进行1个网格的膨胀处理
     for(int i=0;i<width;i++) map.push_back(std::vector<int>());
@@ -120,7 +122,7 @@ std::vector<Point*> getPath(Point* start, Point* end){
             if(neighbor->x < 0 || neighbor->x >= width || neighbor->y < 0 || neighbor->y >= height) continue;
 
             // 判断是否是障碍物
-            if(map[neighbor->y][neighbor->x] == 100 || map[neighbor->y][neighbor->x] == 50) 		continue;
+            if(map[neighbor->y][neighbor->x] == 100 || map[neighbor->y][neighbor->x] == 50) continue;
 
             // 判断是否在closelist中
             if(table[neighbor->x][neighbor->y] == -1) continue;
@@ -156,12 +158,20 @@ void odometryCallback(const nav_msgs::Odometry::ConstPtr& odom){
     startPoint.x = odom->pose.pose.position.y / resolution + origin_x;
     startPoint.y = odom->pose.pose.position.x / resolution + origin_y;
     // ROS_INFO("Init pose: x = %d, y = %d", startPoint.x, startPoint.y);
-
 }
 
 void GoalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg){
     if(msg == nullptr) return;
     if(msg->pose.position.x==endPoint.x && msg->pose.position.y==endPoint.y) return;
+    // 目标点在图外面或者在障碍物上
+    if(msg->pose.position.x < 0 || msg->pose.position.x >= width * resolution || msg->pose.position.y < 0 || msg->pose.position.y >= height * resolution){
+        ROS_INFO("Goal pose is out of map!");
+        return;
+    }
+    if(map[msg->pose.position.y / resolution + origin_y][msg->pose.position.x / resolution + origin_x] == 100 || map[msg->pose.position.y / resolution + origin_y][msg->pose.position.x / resolution + origin_x] == 50){
+        ROS_INFO("Goal pose is on the obstacle!");
+        return;
+    }
     endPoint.x = msg->pose.position.y / resolution + origin_x;
     endPoint.y = msg->pose.position.x / resolution + origin_y;
     startPoint.h = abs(startPoint.x - endPoint.x) + abs(startPoint.y - endPoint.y);
