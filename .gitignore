@@ -25,3 +25,7 @@ src/autonomous_exploration_development_environment/src/vehicle_simulator/log/*
 !src/autonomous_exploration_development_environment/download_environments.sh
 
 !src/autonomous_exploration_development_environment/readme.txt
+
+src/FAST_LIO/Log/*.txt
+
+src/FAST_LIO/PCD/*.pcd
