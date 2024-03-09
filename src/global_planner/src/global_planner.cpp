@@ -29,40 +29,43 @@ Point startPoint,endPoint;
 
 void MapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg){
     ROS_INFO("Map is loading...");
-    width = msg->info.width;
-    height = msg->info.height;
-    resolution = msg->info.resolution;
-    origin_x = -msg->info.origin.position.y / resolution;
-    origin_y = -msg->info.origin.position.x / resolution;
+    width = msg->info.width;                  // 地图的宽度，单位：像素
+    height = msg->info.height;                // 地图的高度，单位：像素
+    resolution = msg->info.resolution;        // 地图的分辨率，单位：米/像素
+    origin_x = msg->info.origin.position.x / resolution;   // 地图的原点x坐标，单位：像素
+    origin_y = msg->info.origin.position.y / resolution;   // 地图的原点y坐标，单位：像素
+    ROS_INFO("Map is loaded! Map info: width = %d, height = %d, resolution = %f, origin_x = %d, origin_y = %d", width, height, resolution, origin_x, origin_y);
     // 清除map中的数据
     map.clear();
     
-    // lzt:进行1个网格的膨胀处理
-    for(int i=0;i<width;i++) map.push_back(std::vector<int>());
-	for(int i=0;i<width;i++){
-		for(int j=0;j<height;j++){
-			map[i].push_back(msg->data[j*width+i]);
-		}
-	}
+    for(int i=0;i<height;i++) map.push_back(std::vector<int>(width));
+    for(int i = 0; i < height; i++)
+    {
+        for(int j = 0; j < width; j++)
+        {
+            // 计算当前单元格在data数组中的索引
+            int index = i * width + j;
+
+            // 获取当前单元格的值
+            int value = msg->data[index];
+
+            // 将当前单元格的值存储到二维向量中
+            map[i][j] = value;
+        }
+    }
 	
-    for(int i = 0; i < width; i++){
-    	for (int j = 0; j < height; j++){
-    		if (map[i][j] == 100){
-    			for (int a = -1; a <= 1; a++){
-    				for (int b = -1; b <= 1; b++){
-    					if (i+a >= width || j+b >= height || i+a < 0 || j+b < 0)
-    						continue;
-    					if (a != 0 && b != 0)
-    						continue;
-    					if (map[i+a][j+b] == 0)
-    						map[i+a][j+b] = 50;
-    				}
-    			}
-    		}
-    	    }
-    	}
-    	
-    ROS_INFO("Map is loaded! Map info: width = %d, height = %d, resolution = %f, origin_x = %d, origin_y = %d", width, height, resolution, origin_x, origin_y);
+    // 膨胀处理
+
+    // //将map打印到txt文件中
+    // FILE *fp;
+    // fp = fopen("/home/jason/Project/github/RCS24_Nav/map.txt", "w");
+    // for(int i=0;i<height;i++){
+    //     for(int j=0;j<width;j++){
+    //         fprintf(fp, "%d ", map[i][j]);
+    //     }
+    //     fprintf(fp, "\n");
+    // }
+    // fclose(fp);
 }
 
 std::vector<Point*> getNeighbors(Point* p){
@@ -80,14 +83,14 @@ std::vector<Point*> getNeighbors(Point* p){
 std::vector<Point*> getPath(Point* start, Point* end){
     ros::Time start_time = ros::Time::now();
     // 初始化table，0-未访问，-1-已访问（在closelist中），>0-代价g
-    std::vector<std::vector<int>> table(width, std::vector<int>(height));
+    std::vector<std::vector<int>> table(height, std::vector<int>(width));
     for(auto& row : table) {
         std::fill(row.begin(), row.end(), 0);
     }
 
     std::priority_queue<Point*, std::vector<Point*>, bool(*)(Point*, Point*)> openList([](Point* a, Point* b){return a->f > b->f;});
     openList.push(start);
-    table[start->x][start->y] = start->g;
+    table[start->y][start->x] = start->g;
 
     while(!openList.empty()){
         // 取出f值最小的点
@@ -95,7 +98,7 @@ std::vector<Point*> getPath(Point* start, Point* end){
         
         // 将当前点放入closelist中
         openList.pop();
-        table[current->x][current->y] = -1;
+        table[current->y][current->x] = -1;
 
         // 判断当前点是否目标点
         if(current->x == end->x && current->y == end->y){
@@ -122,10 +125,10 @@ std::vector<Point*> getPath(Point* start, Point* end){
             if(neighbor->x < 0 || neighbor->x >= width || neighbor->y < 0 || neighbor->y >= height) continue;
 
             // 判断是否是障碍物
-            if(map[neighbor->y][neighbor->x] == 100 || map[neighbor->y][neighbor->x] == 50) continue;
+            if(map[neighbor->y][neighbor->x] == 100) continue;
 
             // 判断是否在closelist中
-            if(table[neighbor->x][neighbor->y] == -1) continue;
+            if(table[neighbor->y][neighbor->x] == -1) continue;
 
             // 计算代价
             neighbor->g = current->g + cost;
@@ -134,16 +137,16 @@ std::vector<Point*> getPath(Point* start, Point* end){
             neighbor->parent = current;
 
             // 判断否在openlist中，如果在，需要比较当前是否更优
-            if(table[neighbor->x][neighbor->y] > 0){
-                if(neighbor->g < table[neighbor->x][neighbor->y]){
-                    table[neighbor->x][neighbor->y] = neighbor->g;
+            if(table[neighbor->y][neighbor->x] > 0){
+                if(neighbor->g < table[neighbor->y][neighbor->x]){
+                    table[neighbor->y][neighbor->x] = neighbor->g;
                     neighbor->parent = current;
                 }
             }
             // 如果不在openlist中，将其放入openlist
             else{
                 openList.push(neighbor);
-                table[neighbor->x][neighbor->y] = neighbor->g;
+                table[neighbor->y][neighbor->x] = neighbor->g;
             }
 
         }
@@ -155,27 +158,27 @@ std::vector<Point*> getPath(Point* start, Point* end){
 
 void odometryCallback(const nav_msgs::Odometry::ConstPtr& odom){
     if(odom == nullptr) return;
-    startPoint.x = odom->pose.pose.position.y / resolution + origin_x;
-    startPoint.y = odom->pose.pose.position.x / resolution + origin_y;
+    startPoint.y = odom->pose.pose.position.y / resolution - origin_y;
+    startPoint.x = odom->pose.pose.position.x / resolution - origin_x;
     // ROS_INFO("Init pose: x = %d, y = %d", startPoint.x, startPoint.y);
 }
 
 void GoalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg){
     if(msg == nullptr) return;
-    if(msg->pose.position.x==endPoint.x && msg->pose.position.y==endPoint.y) return;
     // 目标点在图外面或者在障碍物上
-    if(msg->pose.position.x < 0 || msg->pose.position.x >= width * resolution || msg->pose.position.y < 0 || msg->pose.position.y >= height * resolution){
+    if(msg->pose.position.x/resolution < origin_x || msg->pose.position.x/resolution >= origin_x+width || msg->pose.position.y/resolution < origin_y || msg->pose.position.y/resolution >= origin_y+height){
         ROS_INFO("Goal pose is out of map!");
         return;
     }
-    if(map[msg->pose.position.y / resolution + origin_y][msg->pose.position.x / resolution + origin_x] == 100 || map[msg->pose.position.y / resolution + origin_y][msg->pose.position.x / resolution + origin_x] == 50){
+    if(map[msg->pose.position.y/resolution - origin_y][msg->pose.position.x/resolution - origin_x] == 100){
         ROS_INFO("Goal pose is on the obstacle!");
         return;
     }
-    endPoint.x = msg->pose.position.y / resolution + origin_x;
-    endPoint.y = msg->pose.position.x / resolution + origin_y;
-    startPoint.h = abs(startPoint.x - endPoint.x) + abs(startPoint.y - endPoint.y);
+    endPoint.y = msg->pose.position.y / resolution - origin_y;
+    endPoint.x = msg->pose.position.x / resolution - origin_x;
+    startPoint.h = (abs(startPoint.x - endPoint.x) + abs(startPoint.y - endPoint.y))/resolution;
     isEndPointUpdated = true;
+    // ROS_INFO("Goal posi: x = %f, y = %f", msg->pose.position.x, msg->pose.position.y);
     // ROS_INFO("Goal pose: x = %d, y = %d", endPoint.x, endPoint.y);
 }
 
@@ -194,16 +197,16 @@ int main(int argc, char** argv){
     if(map.size() > 0){
         if(startPoint.x != -1 && startPoint.y != -1 && endPoint.x != -1 && endPoint.y != -1 && isEndPointUpdated){
             std::vector<Point*> path = getPath(&startPoint, &endPoint);
-            std::vector<Point*> my_path;
-            int j = 0;
-            for (int i = 1; i < path.size(); ++i) {
-                if (i == path.size() - 1 || i - j == 10 ||
-        (i-j > 5 &&path[i]->x != path[i-1]->x && path[i]->y != path[i+1]->y && i+1 < path.size()) ||
-        (i-j > 5 &&path[i]->y != path[i-1]->y && path[i]->x != path[i+1]->x && i+1 < path.size())) {
-                        my_path.push_back(path[i]);
-                        j = i;
-                }
-            }
+            std::vector<Point*> my_path = path;
+        //     int j = 0;
+        //     for (int i = 0; i < path.size(); ++i) {
+        //         if (i == path.size() - 1 || i - j == 10 || i == 0 ||
+        // (i-j > 5 &&path[i]->x != path[i-1]->x && path[i]->y != path[i+1]->y && i+1 < path.size()) ||
+        // (i-j > 5 &&path[i]->y != path[i-1]->y && path[i]->x != path[i+1]->x && i+1 < path.size())) {
+        //                 my_path.push_back(path[i]);
+        //                 j = i;
+        //         }
+        //     }
 
             if(my_path.size() > 0){
                 // path publisher
@@ -214,8 +217,8 @@ int main(int argc, char** argv){
                     geometry_msgs::PoseStamped pose;
                     pose.header.stamp = ros::Time::now();
                     pose.header.frame_id = "map";
-                    pose.pose.position.x = ((*it)->y - origin_y) * resolution;
-                    pose.pose.position.y = ((*it)->x - origin_x) * resolution;
+                    pose.pose.position.x = ((*it)->x + origin_x) * resolution;
+                    pose.pose.position.y = ((*it)->y + origin_y) * resolution;
                     pose.pose.position.z = 0;
                     path_msg.poses.push_back(pose);
                 }

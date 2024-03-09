@@ -32,7 +32,7 @@ int main(int argc, char** argv){
     ros::Publisher waypoint_pub = nh.advertise<geometry_msgs::PointStamped>("/way_point", 5);
     ros::Subscriber init_pose_sub = nh.subscribe("/state_estimation", 1, odometryCallback);
     ros::Subscriber global_path_sub = nh.subscribe("/global_path", 1, globalPathCallback);
-    ros::Rate rate(10);
+    ros::Rate rate(100);
     while(ros::ok()){
         if(global_path.size() > 0){
             if(isNearby(cur_position, global_path[way_point_index].pose.position)){
