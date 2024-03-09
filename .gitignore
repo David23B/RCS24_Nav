@@ -21,3 +21,7 @@ src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/ga
 src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/indoor
 
 src/autonomous_exploration_development_environment/src/vehicle_simulator/mesh/tunnel
+
+src/rm_serial
+
+src/FAST_LIO
