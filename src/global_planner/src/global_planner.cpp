@@ -7,9 +7,11 @@
 #include <nav_msgs/Path.h>
 #include <vector>
 #include <queue>
+#include <my_msgs/Path.h>
 
 const int cost = 1;
 
+my_msgs::Path flag_path;
 std::vector<std::vector<int>> map;
 
 int width, height;
@@ -178,18 +180,25 @@ void GoalPoseCallback(const geometry_msgs::PoseStamped::ConstPtr& msg){
     endPoint.x = msg->pose.position.x / resolution - origin_x;
     startPoint.h = (abs(startPoint.x - endPoint.x) + abs(startPoint.y - endPoint.y))/resolution;
     isEndPointUpdated = true;
+    
+    //lzt:
+    flag_path.flag++;
     // ROS_INFO("Goal posi: x = %f, y = %f", msg->pose.position.x, msg->pose.position.y);
     // ROS_INFO("Goal pose: x = %d, y = %d", endPoint.x, endPoint.y);
 }
 
 int main(int argc, char** argv){
+    // lzt:
+    flag_path.flag = 0;
+    
     ros::init(argc, argv, "global_planner");
     ros::NodeHandle nh;
 
     ros::Subscriber map_sub = nh.subscribe("/map", 1, MapCallback);
     ros::Subscriber init_pose_sub = nh.subscribe("/state_estimation", 1, odometryCallback);
     ros::Subscriber goal_pose_sub = nh.subscribe("/move_base_simple/goal", 1, GoalPoseCallback);
-    ros::Publisher path_pub = nh.advertise<nav_msgs::Path>("/global_path", 5);
+    ros::Publisher fir_path_pub = nh.advertise<nav_msgs::Path>("/global_path", 5);
+    ros::Publisher path_pub = nh.advertise<my_msgs::Path>("/l_path", 5);
 
     ros::Rate loop_rate(10);
     
@@ -198,15 +207,6 @@ int main(int argc, char** argv){
         if(startPoint.x != -1 && startPoint.y != -1 && endPoint.x != -1 && endPoint.y != -1 && isEndPointUpdated){
             std::vector<Point*> path = getPath(&startPoint, &endPoint);
             std::vector<Point*> my_path = path;
-        //     int j = 0;
-        //     for (int i = 0; i < path.size(); ++i) {
-        //         if (i == path.size() - 1 || i - j == 10 || i == 0 ||
-        // (i-j > 5 &&path[i]->x != path[i-1]->x && path[i]->y != path[i+1]->y && i+1 < path.size()) ||
-        // (i-j > 5 &&path[i]->y != path[i-1]->y && path[i]->x != path[i+1]->x && i+1 < path.size())) {
-        //                 my_path.push_back(path[i]);
-        //                 j = i;
-        //         }
-        //     }
 
             if(my_path.size() > 0){
                 // path publisher
@@ -222,7 +222,14 @@ int main(int argc, char** argv){
                     pose.pose.position.z = 0;
                     path_msg.poses.push_back(pose);
                 }
-                path_pub.publish(path_msg);
+                
+                // lzt:
+                flag_path.path = path_msg;
+                //flag_path.flag = false; 
+                
+                fir_path_pub.publish(path_msg);
+                path_pub.publish(flag_path);
+                
             }
             isEndPointUpdated = false;
         }

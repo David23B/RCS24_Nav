@@ -41,11 +41,13 @@ roslaunch global_planner global_planner.launch
 - [ ] 规划出的路径很扭曲（如果global做的是方向引导，似乎不需要平滑）
 - [ ] 封装
 - [ ] 考虑是否要在全局规划中更新地图（先验+实时地图规划）（先验不足）
-- [ ] **较远的位置规划不出路径**
+- [x] **较远的位置规划不出路径**
 - [x] 当前waypoint是根据时间间隔发送，修改成根据waypoint与vehicle的距离进行发送（3.6）
-- [ ] **无法到达指定点（应该是少发了最后的点）**
+- [x] **无法到达指定点（应该是少发了最后的点）**
 - [ ] 膨胀栅格可视化（costmap）
 - [ ] https://github.com/ms-iot/ROSOnWindows/issues/279
+- [ ] RVIZ无法订阅自定义的消息类型（l_path）
+
 
 ## THINKING
 

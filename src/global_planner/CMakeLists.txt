@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   roscpp
   rospy
+  my_msgs
 )
 
 ###################################
@@ -14,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 catkin_package(
  ## INCLUDE_DIRS include
- CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy
+ CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy my_msgs
 )
 
 ###########
