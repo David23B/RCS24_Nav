@@ -47,6 +47,7 @@ roslaunch global_planner global_planner.launch
 - [ ] 膨胀栅格可视化（costmap）
 - [ ] https://github.com/ms-iot/ROSOnWindows/issues/279
 - [ ] RVIZ无法订阅自定义的消息类型（l_path）
+- [ ] 将全局规划器改为服务而非话题
 
 
 ## THINKING
