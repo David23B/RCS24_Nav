@@ -30,6 +30,34 @@ struct Point{
 Point startPoint,endPoint;
 
 void MapCallback(const nav_msgs::OccupancyGrid::ConstPtr& msg){
+    // // 地图膨胀处理
+    // int inflation_radius = 2;
+    // for (int i = 0; i < msg->info.width; i++)
+    // {
+    //     for (int j = 0; j < msg->info.height; j++)
+    //     {
+    //         // If this cell is an obstacle
+    //         if (msg->data[j * msg->info.width + i] == 100)
+    //         {
+    //             // Inflate the cells around it
+    //             for (int dx = -inflation_radius; dx <= inflation_radius; dx++)
+    //             {
+    //                 for (int dy = -inflation_radius; dy <= inflation_radius; dy++)
+    //                 {
+    //                     int ni = i + dx;
+    //                     int nj = j + dy;
+    //                     // If the cell is within the map bounds
+    //                     if (ni >= 0 && nj >= 0 && ni < msg->info.width && nj < msg->info.height)
+    //                     {
+    //                         // Inflate the cell
+    //                         msg->data[nj * msg->info.width + ni] = 50;
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
     ROS_INFO("Map is loading...");
     width = msg->info.width;                  // 地图的宽度，单位：像素
     height = msg->info.height;                // 地图的高度，单位：像素
@@ -199,6 +227,7 @@ int main(int argc, char** argv){
     ros::Subscriber goal_pose_sub = nh.subscribe("/move_base_simple/goal", 1, GoalPoseCallback);
     ros::Publisher fir_path_pub = nh.advertise<nav_msgs::Path>("/global_path", 5);
     ros::Publisher path_pub = nh.advertise<my_msgs::Path>("/l_path", 5);
+    // ros::Publisher inflated_map_pub = nh.advertise<nav_msgs::OccupancyGrid>("/inflated_map", 5);
 
     ros::Rate loop_rate(10);
     
